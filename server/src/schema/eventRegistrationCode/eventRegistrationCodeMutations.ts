@@ -78,4 +78,43 @@ builder.mutationFields((t) => ({
       });
     },
   }),
+
+  revokeRegistrationCode : t.prismaField({
+      type: 'EventRegistrationCode',
+      args: { 
+        id: t.arg.id(),
+      },
+      resolve: async (source, { id }, context) => {
+        const registrationCode =
+          await context.prisma.eventRegistrationCode.findUnique({
+            where: { id },
+            include: { targetEvent: true },
+          });
+        const { role } = context.assignment ?? {};
+        if (!registrationCode) {
+          throw new GraphQLYogaError(
+            'Registration code could not be found for: ' + id
+          );
+        }
+        let adminInitializedRevokation = false;
+        if (registrationCode.createdById === context.user?.id) {
+          adminInitializedRevokation = false;
+        } else if (role === Role.ADMIN) {
+          adminInitializedRevokation = true;
+        } else {
+          throw new GraphQLYogaError(
+            'Only Admins can revoke registration codes from other users'
+            );
+        }
+  
+        return RegistrationService.cancelRegistration(
+          id,
+          false,
+          adminInitializedRevokation,
+          context
+        );
+      },
+    }
+  )
+
 }));
