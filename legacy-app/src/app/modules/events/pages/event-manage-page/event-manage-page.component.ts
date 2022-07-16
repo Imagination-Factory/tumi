@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
 import {
   CheckInUserGQL,
   CreateEventRegistrationCodeGQL,
+  RevokeEventRegistrationCodeGQL,
   DeregisterFromEventGQL,
   LoadEventForManagementGQL,
   LoadEventForManagementQuery,
@@ -32,6 +33,7 @@ export class EventManagePageComponent implements OnDestroy {
     private deregisterFromEventGQL: DeregisterFromEventGQL,
     private checkInMutation: CheckInUserGQL,
     private createEventRegistrationCodeGQL: CreateEventRegistrationCodeGQL,
+    private revokeEventRegistrationCodeGQL: RevokeEventRegistrationCodeGQL,
     private route: ActivatedRoute
   ) {
     this.title.setTitle('TUMi - manage event');
@@ -165,5 +167,24 @@ export class EventManagePageComponent implements OnDestroy {
       })
     );
     this.loadEventQueryRef.refetch();
+  }
+
+  async revokeRegistrationCode(registrationId: string) {
+    const event = await firstValueFrom(this.event$);
+    const proceed = confirm('Are you sure you want to remoke this user registration code?');
+    if (event && proceed) {
+      try {
+        await firstValueFrom(
+          this.revokeEventRegistrationCodeGQL.mutate({
+            id: registrationId,
+          })
+        );
+      } catch (e) {
+        console.error(e);
+        if (e instanceof Error) {
+          alert(e.message);
+        }
+      }
+    }
   }
 }
