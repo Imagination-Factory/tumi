@@ -288,7 +288,31 @@ $tumi-dark-theme: mat.define-dark-theme(
       }
     }
   }
+  mat-panel-title {
+    @apply lg:text-lg font-bold;
+  }
   .bg-blur {
     backdrop-filter: blur(16px) saturate(180%);
+  }
+  .mat-list-avatar {
+    border-radius: 0 !important;
+  }
+  .save-button {
+    .mat-icon {
+      &:not(.saving) {
+        display: none;
+      }
+      mat-spinner {
+        height: 24px !important;
+        width: 24px !important;
+        circle {
+          @apply stroke-gray-400;
+        }
+        svg {
+          height: 24px !important;
+          width: 24px !important;
+        }
+      }
+    }
   }
 }

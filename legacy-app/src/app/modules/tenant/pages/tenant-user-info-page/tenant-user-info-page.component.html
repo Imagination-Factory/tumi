@@ -1,3 +1,7 @@
+<mat-progress-bar
+  mode="indeterminate"
+  *ngIf="(user$ | async) === null"
+></mat-progress-bar>
 <main class="p-4" *ngIf="user$ | async as user">
   <div fxLayout="row" fxLayoutGap="1rem">
     <a routerLink=".." mat-icon-button>
@@ -29,7 +33,7 @@
     <p>Phone:</p>
     <p>{{ user.phone }}</p>
     <p>ESNcard:</p>
-    <p>{{ user.hasESNcard }}</p>
+    <p>{{ user.hasESNCard }}</p>
     <p>ESNcardOverride:</p>
     <mat-slide-toggle
       [checked]="user.esnCardOverride"

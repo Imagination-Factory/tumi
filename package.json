@@ -2,7 +2,7 @@
   "name": "tumi",
   "license": "MIT",
   "private": true,
-  "version": "4.0.0",
+  "version": "4.1.1",
   "workspaces": [
     "events",
     "server",
@@ -18,7 +18,12 @@
     "experiments": "yarn workspace @tumi/experiments dev",
     "party-animals": "yarn workspace @tumi/party-animals dev",
     "start": "concurrently --kill-others-on-fail \"yarn server\"  \"yarn events\"",
-    "build:all": "yarn workspace @tumi/server build && yarn workspace @tumi/events build && yarn workspace @tumi/experiments build && yarn workspace @tumi/party-animals build"
+    "build:all": "yarn workspace @tumi/server build && yarn workspace @tumi/events build && yarn workspace @tumi/experiments build && yarn workspace @tumi/party-animals build",
+    "release:draft": "conventional-github-releaser -p angular --draft",
+    "release": "conventional-github-releaser -p angular"
+  },
+  "engines": {
+    "node": ">=17.0.0 <18.0.0"
   },
   "packageManager": "yarn@3.2.1",
   "dependencies": {

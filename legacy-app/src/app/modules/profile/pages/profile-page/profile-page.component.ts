@@ -1,11 +1,5 @@
+import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import {
-  GetPaymentSetupSessionGQL,
   MembershipStatus,
   SubmitEventFeedbackGQL,
   UpdateProfileGQL,
@@ -19,9 +13,6 @@ import { ActivatedRoute } from '@angular/router';
 import { UpdateProfileDialogComponent } from '@tumi/legacy-app/modules/profile/components/update-profile-dialog/update-profile-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ClaimEventDialogComponent } from '@tumi/legacy-app/modules/profile/components/claim-event-dialog/claim-event-dialog.component';
-import { loadStripe } from '@stripe/stripe-js/pure';
-import { environment } from '../../../../../environments/environment';
-
 @Component({
   selector: 'app-profile-page',
   templateUrl: './profile-page.component.html',
@@ -36,7 +27,6 @@ export class ProfilePageComponent implements OnDestroy {
   constructor(
     private title: Title,
     private profileQuery: UserProfileGQL,
-    private getStripeSession: GetPaymentSetupSessionGQL,
     private submitEventFeedbackGQL: SubmitEventFeedbackGQL,
     private updateProfileMutation: UpdateProfileGQL,
     private route: ActivatedRoute,
@@ -57,6 +47,7 @@ export class ProfilePageComponent implements OnDestroy {
           []),
       ])
     );
+
     this.route.queryParamMap.pipe(first()).subscribe((queryMap) => {
       const status = queryMap.get('stripe');
       if (status === 'success') {
@@ -75,7 +66,7 @@ export class ProfilePageComponent implements OnDestroy {
     this.profileQueryRef.stopPolling();
   }
 
-  async setupStripePayment() {
+  /*async setupStripePayment() {
     const { data } = await firstValueFrom(this.getStripeSession.fetch());
     const stripe = await loadStripe(environment.stripeKey);
     if (stripe) {
@@ -83,16 +74,19 @@ export class ProfilePageComponent implements OnDestroy {
         sessionId: data.getPaymentSetupSession.id,
       });
     }
-  }
+  }*/
 
   async updateProfile() {
     const profile = await firstValueFrom(this.profile$);
-    const result = await this.dialog
-      .open(UpdateProfileDialogComponent, { data: { profile } })
-      .afterClosed()
-      .toPromise();
+    const result = await firstValueFrom(
+      this.dialog
+        .open(UpdateProfileDialogComponent, { data: { profile } })
+        .afterClosed()
+    );
     if (result && profile) {
-      await this.updateProfileMutation.mutate({ input: result }).toPromise();
+      await firstValueFrom(
+        this.updateProfileMutation.mutate({ input: result, userId: profile.id })
+      );
     }
   }
 

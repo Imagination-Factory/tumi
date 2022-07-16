@@ -10,7 +10,8 @@ on:
 #  schedule:
 #    - cron: '43 11 * * *'
   push:
-    branches: [release]
+#     branches:
+#       - release
     # Publish semver tags as releases.
     tags: ['v*.*.*']
     paths:
@@ -49,7 +50,7 @@ jobs:
 
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
+        uses: styfle/cancel-workflow-action@0.10.0
         with:
           access_token: ${{ github.token }}
 
@@ -64,7 +65,7 @@ jobs:
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
         if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
+        uses: sigstore/cosign-installer@48866aa521d8bf870604709cd43ec2f602d03ff2
         with:
           cosign-release: 'v1.4.0'
 
@@ -107,7 +108,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.sha }}
+            VERSION=${{ steps.build-and-push.outputs.digest }}
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
@@ -127,7 +128,7 @@ jobs:
       name: production
       url: https://tumi.esn.world
     needs: build
-    if: github.ref == 'refs/heads/main'
+#     if: github.ref == 'refs/heads/release'
 
     steps:
       - name: Azure Login
@@ -168,7 +169,7 @@ jobs:
         with:
           include: legacy-app/src/environments/*.ts
           find: "PROD_VERSION"
-          replace: ${{ github.sha }}
+          replace: ${{ needs.build.outputs.sha_short }}
 
       - name: Prepare yarn
         uses: actions/setup-node@v3
@@ -193,4 +194,4 @@ jobs:
           projects: legacy-app
           sourcemaps: legacy-app/dist/legacy-app
           version_prefix: legacy-app@
-          version: ${{ github.sha }}
+          version: ${{ needs.build.outputs.sha_short }}

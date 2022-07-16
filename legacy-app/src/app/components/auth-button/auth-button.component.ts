@@ -1,7 +1,6 @@
-import { Component, Inject } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
+import { Component } from '@angular/core';
 import { AuthService } from '@auth0/auth0-angular';
-import { filter, map, retry, tap } from 'rxjs';
+import { filter, map, tap } from 'rxjs';
 import { GetCurrentUserGQL } from '@tumi/legacy-app/generated/generated';
 import { Router } from '@angular/router';
 import { retryBackoff } from 'backoff-rxjs';
@@ -13,8 +12,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./auth-button.component.scss'],
 })
 export class AuthButtonComponent {
+  public userPicture: string = '';
+
   constructor(
-    @Inject(DOCUMENT) public document: Document,
     public auth: AuthService,
     private snackBar: MatSnackBar,
     router: Router,
@@ -24,21 +24,22 @@ export class AuthButtonComponent {
       getUser
         .fetch()
         .pipe(
-          map((user) => {
-            if (!user.data.currentUser) throw new Error('not logged in');
-            return user;
-          }),
-          retryBackoff({ initialInterval: 100, maxRetries: 5 })
-        )
-        .subscribe({
-          next: (user) => {
+          tap((user) => {
+            this.userPicture = user.data.currentUser?.picture || '';
             if (
               !user.data.currentUser ||
               !user.data.currentUser.profileComplete
             ) {
               router.navigate(['/', 'profile', 'new']);
             }
-          },
+          }),
+          // map((user) => {
+          //   if (!user.data.currentUser) throw new Error('not logged in');
+          //   return user;
+          // }),
+          retryBackoff({ initialInterval: 100, maxRetries: 5 })
+        )
+        .subscribe({
           error: (err) => {
             console.log(err);
             this.snackBar

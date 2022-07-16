@@ -7,17 +7,35 @@ import {
   LoadEventForManagementGQL,
   LoadEventForManagementQuery,
   RegistrationStatus,
+  TumiEvent,
 } from '@tumi/legacy-app/generated/generated';
 import { firstValueFrom, map, Observable, share, Subject, tap } from 'rxjs';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from 'src/environments/environment';
+import {
+  trigger,
+  state,
+  transition,
+  animate,
+  style,
+} from '@angular/animations';
 
 @Component({
   selector: 'app-event-manage-page',
   templateUrl: './event-manage-page.component.html',
   styleUrls: ['./event-manage-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ),
+    ]),
+  ],
 })
 export class EventManagePageComponent implements OnDestroy {
   public event$: Observable<LoadEventForManagementQuery['event']>;
@@ -26,6 +44,16 @@ export class EventManagePageComponent implements OnDestroy {
   public lastUserFeeShare$: Observable<number>;
   private loadEventQueryRef;
   private destroyed$ = new Subject();
+
+  registrationTableColumns: string[] = [
+    'name',
+    'registrationStatus',
+    'paid',
+    'registered',
+    'checkIn',
+    'expand',
+  ];
+  expandedRegistration?: TumiEvent;
 
   constructor(
     private title: Title,
@@ -45,15 +73,14 @@ export class EventManagePageComponent implements OnDestroy {
       map(({ data }) => data.event)
     );
     this.feeShare$ = this.event$.pipe(
-      map(
-        (event) =>
-          Math.floor(
-            (event.refundFeesPaid /
-              event.participantRegistrations.filter(
-                (r) => r.status !== RegistrationStatus.Cancelled
-              ).length) *
-              100
-          ) / 100
+      map((event) =>
+        Math.floor(
+          (event.refundFeesPaid /
+            event.participantRegistrations.filter(
+              (r) => r.status !== RegistrationStatus.Cancelled
+            ).length) *
+            100
+        )
       ),
       share()
     );
@@ -61,14 +88,13 @@ export class EventManagePageComponent implements OnDestroy {
       map(
         (event) =>
           event.refundFeesPaid -
-          (Math.floor(
+          Math.floor(
             (event.refundFeesPaid /
               event.participantRegistrations.filter(
                 (r) => r.status !== RegistrationStatus.Cancelled
               ).length) *
               100
-          ) /
-            100) *
+          ) *
             (event.participantRegistrations.filter(
               (r) => r.status !== RegistrationStatus.Cancelled
             ).length -
@@ -186,5 +212,16 @@ export class EventManagePageComponent implements OnDestroy {
         }
       }
     }
+  }
+  
+  getStatusOfRegistration(registration: any) {
+    console.log(registration);
+    if (registration.status === '"SUCCESSFUL"') return 'successful';
+    if (registration.cancellationReason) {
+      if (registration.cancellationReason.includes('moved')) return 'moved';
+      if (registration.cancellationReason.includes('given up'))
+        return 'deregistered';
+    }
+    return registration.status.toLowerCase();
   }
 }

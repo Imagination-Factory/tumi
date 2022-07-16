@@ -34,8 +34,10 @@
         color="primary"
         [disabled]="priceControl.invalid || (processing | async)"
         (click)="register()"
+        class="modern"
       >
-        Start payment and register
+        <mat-icon svgIcon="icon-money-bag-euro-2"></mat-icon>
+        <span>Start payment and register</span>
       </button>
       <mat-progress-bar
         mode="indeterminate"
@@ -45,23 +47,30 @@
   </app-check-additional-data>
   <ng-container
     *ngIf="
-      !event.participantRegistrationPossible.option && !event.userRegistered
+      !event.participantRegistrationPossible.option && !event.userIsRegistered
     "
   >
     <p>
       {{ event.participantRegistrationPossible.reason }}
     </p>
   </ng-container>
-  <ng-container *ngIf="event.userRegistered">
+  <ng-container *ngIf="event.userIsRegistered">
     <!--    <pre>{{ event.activeRegistration | json }}</pre>-->
-    <p>✔️ You have a spot on this event.</p>
+    <p
+      *ngIf="
+        event.activeRegistration?.transaction?.stripePayment?.status !==
+        'incomplete'
+      "
+    >
+      ✔️ You have a spot on this event.
+    </p>
     <ng-container
       *ngIf="
         event.activeRegistration?.transaction?.stripePayment?.status ===
         'incomplete'
       "
     >
-      <p class="text-lg font-bold">Your payment is not complete yet</p>
+      <p class="text-lg font-bold">⚠️ Your payment is not complete yet</p>
       <p>
         Please make sure to complete you payment by
         {{ lastPayment | date: 'mediumTime' }} or we will have to cancel your

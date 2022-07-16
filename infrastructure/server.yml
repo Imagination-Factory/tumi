@@ -37,8 +37,8 @@ template:
     - name: STORAGE_CONNECTION_STRING
       secretRef: storage-connection-string
     resources:
-      cpu: 0.5
-      memory: 1Gi
+      cpu: 1
+      memory: 2Gi
     probes:
       - type: Liveness
         httpGet:
@@ -57,4 +57,16 @@ template:
     - name: http-rule
       http:
         metadata:
-          concurrentRequests: 150
+          concurrentRequests: 50
+    - name: cpu-scaling-rule
+      custom:
+        type: cpu
+        metadata:
+          type: Utilization
+          value: 80
+    - name: memory-scaling-rule
+      custom:
+        type: memory
+        metadata:
+          type: Utilization
+          value: 80

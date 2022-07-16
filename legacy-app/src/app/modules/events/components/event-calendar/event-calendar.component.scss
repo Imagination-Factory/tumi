@@ -1,0 +1,31 @@
+.day {
+  gap: 0.2em;
+}
+
+.event {
+  @apply bg-gray-200;
+  outline-offset: -1px;
+
+  &.future-registration {
+    @apply bg-slate-500;
+    @apply text-white;
+  }
+
+  &.registered,
+  &.organizer {
+    @apply bg-green-100;
+    @apply text-black;
+  }
+  &.draft {
+    @apply bg-red-100;
+    @apply text-black;
+  }
+  &.organizers {
+    @apply bg-blue-100;
+    @apply text-black;
+  }
+  &.approval {
+    @apply bg-yellow-100;
+    @apply text-black;
+  }
+}

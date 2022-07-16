@@ -4,6 +4,22 @@ import fetch from 'node-fetch';
 export class Auth0 {
   private token: string | undefined;
 
+  public async getProfile(auth_header: string) {
+    console.log(auth_header);
+    const response = await fetch(`https://tumi.eu.auth0.com/userinfo`, {
+      headers: {
+        Authorization: `${auth_header}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log(response);
+    return (await response.json()) as {
+      email: string;
+      email_verified: boolean;
+      picture: string;
+    };
+  }
+
   public async getUserInfo(userId: string) {
     await this.verifyToken();
     const response = await fetch(
@@ -19,6 +35,8 @@ export class Auth0 {
       email: string;
       email_verified: boolean;
       picture: string;
+      family_name?: string;
+      given_name?: string;
     };
   }
 
@@ -28,7 +46,7 @@ export class Auth0 {
       if (
         typeof payload !== 'string' &&
         payload?.exp &&
-        new Date() < new Date(payload.exp)
+        new Date().getTime() / 1000 < payload.exp
       ) {
         return;
       }

@@ -1,16 +1,18 @@
 // import { Price } from '@tumi/shared/data-types';
 import {
-  PrismaClient,
   RegistrationMode,
   RegistrationStatus,
   RegistrationType,
+  Tenant,
   TransactionType,
+  User,
+  UsersOfTenants,
 } from '../generated/prisma';
 import * as stripe from 'stripe';
-import { GetGen } from 'nexus/dist/typegenTypeHelpers';
 import { DateTime } from 'luxon';
 import prisma from '../client';
 import * as Sentry from '@sentry/node';
+import { Auth0 } from './auth0';
 
 export class RegistrationService {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -19,7 +21,13 @@ export class RegistrationService {
   );
 
   public static async registerWithCode(
-    context: GetGen<'context'>,
+    context: {
+      token?: { sub: string };
+      auth0: Auth0;
+      tenant: Tenant;
+      user?: User;
+      userOfTenant?: UsersOfTenants;
+    },
     registrationCodeId: string,
     userId: string,
     price: any,
@@ -113,7 +121,13 @@ export class RegistrationService {
   }
 
   public static async createPayment(
-    context: GetGen<'context'>,
+    context: {
+      token?: { sub: string };
+      auth0: Auth0;
+      tenant: Tenant;
+      user?: User;
+      userOfTenant?: UsersOfTenants;
+    },
     items: Array<stripe.Stripe.Checkout.SessionCreateParams.LineItem>,
     submitType: stripe.Stripe.Checkout.SessionCreateParams.SubmitType,
     cancelUrl: string,
@@ -208,9 +222,15 @@ export class RegistrationService {
     registrationId: string,
     withRefund: boolean,
     isKick: boolean,
-    context: GetGen<'context'>
+    context: {
+      token?: { sub: string };
+      auth0: Auth0;
+      tenant: Tenant;
+      user?: User;
+      userOfTenant?: UsersOfTenants;
+    }
   ) {
-    const registration = await context.prisma.eventRegistration.findUnique({
+    const registration = await prisma.eventRegistration.findUnique({
       where: { id: registrationId },
       include: {
         event: true,
@@ -235,7 +255,7 @@ export class RegistrationService {
           Sentry.captureException(e);
         }
       }
-      await context.prisma.eventRegistration.update({
+      await prisma.eventRegistration.update({
         where: { id: registrationId },
         data: {
           status: RegistrationStatus.CANCELLED,
@@ -253,7 +273,7 @@ export class RegistrationService {
     } else if (
       registration.event.registrationMode === RegistrationMode.ONLINE
     ) {
-      await context.prisma.eventRegistration.update({
+      await prisma.eventRegistration.update({
         where: { id: registrationId },
         data: {
           status: RegistrationStatus.CANCELLED,

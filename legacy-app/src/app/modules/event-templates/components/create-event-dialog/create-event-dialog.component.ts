@@ -34,7 +34,7 @@ export class CreateEventDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA)
     public data: {
       template: GetEventTemplateQuery['eventTemplate'];
-      organizers: GetOrganizerOptionsQuery['organizers'];
+      organizers: GetOrganizerOptionsQuery['eventOrganizers'];
     },
     private fb: UntypedFormBuilder,
     private dialog: MatDialogRef<CreateEventDialogComponent>
@@ -47,7 +47,9 @@ export class CreateEventDialogComponent implements OnInit, OnDestroy {
       registrationMode: ['', Validators.required],
       participantLimit: ['', Validators.required],
       organizerLimit: ['', Validators.required],
-      organizerId: ['', Validators.required],
+      eventOrganizerId: ['', Validators.required],
+      excludeFromRatings: [false, Validators.required],
+      excludeFromStatistics: [false, Validators.required],
     });
   }
 
